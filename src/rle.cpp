@@ -11,12 +11,17 @@ void encode_bytes(std::vector<uint8_t>& in, uint8_t character, uint32_t count)
 {
 	uint8_t long_run = (count >= SINGLE_BYTE_MAX && count < DOUBLE_BYTE_MAX) ? 0x80 : 0x00;
 	in.push_back(long_run | ((count & 0b111) << 4) | character);
-	if (long_run) in.push_back(count >> 3);
+	(*(uint16_t*)in.data())++;
+	if (long_run)
+	{
+		in.push_back(count >> 3);
+		(*(uint16_t*)in.data())++;
+	}
 }
 
 std::vector<uint8_t> rle_encode(const std::vector<uint8_t>& input_data)
 {
-	std::vector<uint8_t> output_data;
+	std::vector<uint8_t> output_data = { 0x00, 0x00 };
 
 	uint8_t current_character = input_data[0];
 	uint32_t current_count = 1;	
@@ -43,7 +48,7 @@ std::vector<uint8_t> rle_decode(const std::vector<uint8_t>& input_data)
 {
     std::vector<uint8_t> output_data;
 
-    for (std::size_t i = 0; i < input_data.size(); i++)
+    for (std::size_t i = 2; i < (*(uint16_t*)input_data.data()); i++)
     {
         bool long_run = 0x80 & input_data[i];
         uint8_t index = input_data[i] & 0x0F;
