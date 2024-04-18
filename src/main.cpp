@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iterator>
+#include <ostream>
 #include <strings.h>
 #include <vector>
 #include <map>
@@ -26,14 +27,17 @@ void fill_vector(std::vector<T>& vec, std::ifstream& file)
 
 int main(int argc, char** argv)
 {
-	if (argc < 2)
+	if (argc < 3)
+	{
 		fmt::println(stderr, "Usage: {} INPUT OUTPUT", argv[0]);
+		return 1;
+	}
 
 	std::ifstream file_in(argv[1], std::ios::binary);
 	if (!file_in.is_open())
 	{
-		fmt::print(stderr, "Failed to open file!\n");
-		return 1;
+		fmt::print(stderr, "Failed to open file {} for reading. Check permissions.\n", argv[1]);
+		return 2;
 	}
 
 	std::vector<uint32_t> pixel_data;
@@ -51,20 +55,24 @@ int main(int argc, char** argv)
 	for (auto& c : color_index)
 	{
 		c.second = index++;
-	//	fmt::println("Color: {:08X}, Count: {}", c.first, c.second);
 	}
 	
-	//fmt::println("Number of colors: {}", color_index.size());
-
 	std::vector<uint8_t> indexes;
 	for (auto& p : pixel_data)
 	{
 		indexes.push_back(color_index[p]);
-	//	fmt::print("{:c}", color_index[p]);
 	}
 
 	auto rle = rle_encode(indexes);
-	std::copy(rle.begin(), rle.end(), std::ostream_iterator<uint8_t>(std::cout));
-	//std::copy(indexes.begin(), indexes.end(), std::ostream_iterator<uint8_t>(std::cout));
+	
+	std::ofstream file_out(argv[2]);
+	if (!file_out.is_open())
+	{
+		fmt::print(stderr, "Could not open file {} for writing. Check permissions or available storage.\n", argv[2]);
+		return 3;
+	}
+
+	std::copy(rle.begin(), rle.end(), std::ostream_iterator<uint8_t>(file_out));
+	fmt::print(stdout, "File {} to file {}\n", argv[1], argv[2]);
 	return 0;
 }
