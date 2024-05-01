@@ -1,6 +1,5 @@
 #include <fstream>
 #include <iterator>
-#include <ostream>
 #include <strings.h>
 #include <vector>
 #include <map>
@@ -73,6 +72,5 @@ int main(int argc, char** argv)
 	}
 
 	std::copy(rle.begin(), rle.end(), std::ostream_iterator<uint8_t>(file_out));
-	fmt::print(stdout, "File {} to file {}\n", argv[1], argv[2]);
 	return 0;
 }
